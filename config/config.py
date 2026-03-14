@@ -25,3 +25,28 @@ REQUIRED_COLUMNS = ["Open", "High", "Low", "Close", "Volume"]
 
 LOG_LEVEL  = "INFO"
 LOG_FORMAT = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+
+# ──────────────────────────────────────────────
+# DATA PROCESSING SETTINGS
+# ──────────────────────────────────────────────
+
+# Target column for prediction
+TARGET_COLUMN = "Close"
+
+# Missing value strategy: "ffill", "bfill", "drop", "interpolate"
+MISSING_VALUE_STRATEGY = "ffill"
+
+# Outlier detection: IQR multiplier (1.5 = standard, 3.0 = conservative)
+OUTLIER_IQR_MULTIPLIER = 3.0
+
+# Normalization method: "minmax" or "standard"
+NORMALIZATION_METHOD = "minmax"
+
+# Sequence window size (lookback period in trading days)
+SEQUENCE_LENGTH = 60
+
+# Train/Test split ratio
+TRAIN_RATIO = 0.80
+
+# Processed data storage
+PROCESSED_DATA_DIR = os.path.join(BASE_DIR, "data", "processed")
