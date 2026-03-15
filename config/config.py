@@ -50,3 +50,28 @@ TRAIN_RATIO = 0.80
 
 # Processed data storage
 PROCESSED_DATA_DIR = os.path.join(BASE_DIR, "data", "processed")
+
+# ──────────────────────────────────────────────
+# FEATURE ENGINEERING SETTINGS
+# ──────────────────────────────────────────────
+
+# Moving average windows (in trading days)
+MA_WINDOWS = [7, 21, 50]
+
+# Bollinger Band window and standard deviation multiplier
+BOLLINGER_WINDOW  = 20
+BOLLINGER_STD_DEV = 2
+
+# RSI period
+RSI_PERIOD = 14
+
+# MACD parameters
+MACD_FAST   = 12
+MACD_SLOW   = 26
+MACD_SIGNAL = 9
+
+# Volatility rolling window
+VOLATILITY_WINDOW = 21
+
+# Features data directory
+FEATURES_DATA_DIR = os.path.join(BASE_DIR, "data", "features")
