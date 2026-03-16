@@ -6,7 +6,7 @@ A modular ML system for predicting stock price trends using historical Yahoo Fin
 - [x] Layer 1: Data Ingestion
 - [x] Layer 2: Data Processing
 - [x] Layer 3: Feature Engineering
-- [ ] Layer 4: Model Training (Linear Regression, ARIMA, LSTM)
+- [x] Layer 4: Model Training (Linear Regression, ARIMA, LSTM)
 - [ ] Layer 5: Model Evaluation
 - [ ] Layer 6: Model Registry
 - [ ] Layer 7: Prediction Service
