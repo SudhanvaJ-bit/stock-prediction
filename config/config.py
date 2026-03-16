@@ -75,3 +75,24 @@ VOLATILITY_WINDOW = 21
 
 # Features data directory
 FEATURES_DATA_DIR = os.path.join(BASE_DIR, "data", "features")
+
+# ──────────────────────────────────────────────
+# MODEL TRAINING SETTINGS
+# ──────────────────────────────────────────────
+
+# Models directory
+MODELS_DIR = os.path.join(BASE_DIR, "models")
+
+# ── Linear Regression ──
+LR_FIT_INTERCEPT = True
+
+# ── ARIMA ──
+ARIMA_ORDER = (5, 1, 0)          # (p, d, q)
+
+# ── LSTM ──
+LSTM_UNITS        = [128, 64]     # Units per LSTM layer
+LSTM_DROPOUT      = 0.2
+LSTM_EPOCHS       = 50
+LSTM_BATCH_SIZE   = 32
+LSTM_PATIENCE     = 10            # Early stopping patience
+LSTM_LEARNING_RATE = 0.001
