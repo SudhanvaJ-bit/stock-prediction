@@ -1,0 +1,32 @@
+============================================================
+  Stock Price Prediction — Evaluation Report
+  Ticker    : AAPL
+  Generated : 2026-03-23 22:43:41
+============================================================
+
+  METRICS ON REAL (INVERSE-TRANSFORMED) DOLLAR VALUES
+------------------------------------------------------------
+  [LinearRegression]
+    RMSE               : $13.6852
+    MAE                : $10.8482
+    MAPE               : 5.1073%
+    R2                 : 0.6746
+    Directional Acc    : 48.17%
+
+  [ARIMA]
+    RMSE               : $31.9895
+    MAE                : $28.7433
+    MAPE               : 13.0219%
+    R2                 : -0.7780
+    Directional Acc    : 40.31%
+
+  [LSTM]
+    RMSE               : $22.5793
+    MAE                : $19.8307
+    MAPE               : 8.7856%
+    R2                 : 0.1142
+    Directional Acc    : 56.54%
+
+------------------------------------------------------------
+  BEST MODEL : LinearRegression (lowest RMSE)
+============================================================

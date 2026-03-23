@@ -96,3 +96,11 @@ LSTM_EPOCHS       = 50
 LSTM_BATCH_SIZE   = 32
 LSTM_PATIENCE     = 10            # Early stopping patience
 LSTM_LEARNING_RATE = 0.001
+
+# ──────────────────────────────────────────────
+# EVALUATION SETTINGS
+# ──────────────────────────────────────────────
+
+# Reports and plots output directory
+REPORTS_DIR = os.path.join(BASE_DIR, "reports")
+PLOTS_DIR   = os.path.join(BASE_DIR, "reports", "plots")
