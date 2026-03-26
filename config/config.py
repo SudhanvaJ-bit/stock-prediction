@@ -104,3 +104,16 @@ LSTM_LEARNING_RATE = 0.001
 # Reports and plots output directory
 REPORTS_DIR = os.path.join(BASE_DIR, "reports")
 PLOTS_DIR   = os.path.join(BASE_DIR, "reports", "plots")
+
+# ──────────────────────────────────────────────
+# MODEL REGISTRY SETTINGS
+# ──────────────────────────────────────────────
+
+# Registry root directory
+REGISTRY_DIR = os.path.join(BASE_DIR, "registry")
+
+# Registry index file (JSON) — tracks all registered models
+REGISTRY_INDEX_FILE = os.path.join(BASE_DIR, "registry", "registry_index.json")
+
+# Metric used to select the best model
+BEST_MODEL_METRIC = "RMSE ($)"     # lower is better

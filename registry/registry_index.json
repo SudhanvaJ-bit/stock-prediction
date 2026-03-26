@@ -1,0 +1,56 @@
+{
+  "AAPL__LinearRegression__v1": {
+    "model_name": "LinearRegression",
+    "version": "v1",
+    "ticker": "AAPL",
+    "registered_at": "2026-03-26T12:24:39",
+    "model_path": "D:\\ML Project\\stock_prediction\\registry\\AAPL\\LinearRegression\\v1\\LinearRegression.pkl",
+    "scaler_path": "D:\\ML Project\\stock_prediction\\data\\processed\\AAPL_scaler_minmax.pkl",
+    "metrics": {
+      "Model": "LinearRegression",
+      "RMSE ($)": 13.6852,
+      "MAE ($)": 10.8482,
+      "MAPE (%)": 5.1073,
+      "R2": 0.6746,
+      "Direction Acc (%)": 48.1675
+    },
+    "is_best": true,
+    "notes": "Auto-registered | metric=RMSE ($)"
+  },
+  "AAPL__ARIMA__v1": {
+    "model_name": "ARIMA",
+    "version": "v1",
+    "ticker": "AAPL",
+    "registered_at": "2026-03-26T12:24:39",
+    "model_path": "D:\\ML Project\\stock_prediction\\registry\\AAPL\\ARIMA\\v1\\ARIMA.pkl",
+    "scaler_path": "D:\\ML Project\\stock_prediction\\data\\processed\\AAPL_scaler_minmax.pkl",
+    "metrics": {
+      "Model": "ARIMA",
+      "RMSE ($)": 31.9895,
+      "MAE ($)": 28.7433,
+      "MAPE (%)": 13.0219,
+      "R2": -0.778,
+      "Direction Acc (%)": 40.3141
+    },
+    "is_best": false,
+    "notes": "Auto-registered | metric=RMSE ($)"
+  },
+  "AAPL__LSTM__v1": {
+    "model_name": "LSTM",
+    "version": "v1",
+    "ticker": "AAPL",
+    "registered_at": "2026-03-26T12:24:39",
+    "model_path": "D:\\ML Project\\stock_prediction\\registry\\AAPL\\LSTM\\v1\\LSTM.keras",
+    "scaler_path": "D:\\ML Project\\stock_prediction\\data\\processed\\AAPL_scaler_minmax.pkl",
+    "metrics": {
+      "Model": "LSTM",
+      "RMSE ($)": 18.9933,
+      "MAE ($)": 16.3949,
+      "MAPE (%)": 7.2357,
+      "R2": 0.3732,
+      "Direction Acc (%)": 54.4503
+    },
+    "is_best": false,
+    "notes": "Auto-registered | metric=RMSE ($)"
+  }
+}
