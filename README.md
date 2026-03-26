@@ -13,8 +13,8 @@ A modular, production-minded ML system that predicts stock price trends using hi
 | Layer 3 | Feature Engineering | ✅ Complete |
 | Layer 4 | Model Training | ✅ Complete |
 | Layer 5 | Model Evaluation | ✅ Complete |
-| Layer 6 | Model Registry | 🔄 In Progress |
-| Layer 7 | Prediction Service | ⬜ Upcoming |
+| Layer 6 | Model Registry | ✅ Complete |
+| Layer 7 | Prediction Service | 🔄 In Progress |
 | Layer 8 | Visualization / UI (Streamlit) | ⬜ Upcoming |
 
 ---
@@ -57,8 +57,14 @@ Layer 5 — Model Evaluation
   └── ReportGenerator        → CSV + TXT evaluation reports
       │
       ▼
-Layer 6 — Model Registry       ← next
-Layer 7 — Prediction Service
+Layer 6 — Model Registry
+  ├── ModelEntry             → structured metadata record per model
+  ├── RegistryStore          → JSON-backed versioned index
+  ├── ModelLoader            → reconstructs models from saved files
+  └── ModelRegistry          → register, load best, list, version
+      │
+      ▼
+Layer 7 — Prediction Service   ← next
 Layer 8 — Streamlit UI
 ```
 
@@ -82,9 +88,9 @@ Layer 8 — Streamlit UI
 |-------|----------|---------|----------|----|---------------|
 | LinearRegression | $13.69 | $10.85 | 5.11% | 0.6746 | 48.17% |
 | ARIMA | $31.99 | $28.74 | 13.02% | -0.778 | 40.31% |
-| **LSTM** | $22.58 | $19.83 | 8.79% | 0.1142 | **56.54%** |
+| **LSTM** | $18.99 | $16.39 | 7.24% | 0.3732 | **54.45%** |
 
-> **Key Insight:** LinearRegression wins on raw error metrics (RMSE/MAE) but LSTM wins on Directional Accuracy (56.54%) — correctly predicting UP/DOWN movement more often. For trading purposes, direction matters more than absolute price error.
+> **Key Insight:** LinearRegression wins on raw error metrics (RMSE/MAE) but LSTM wins on Directional Accuracy (54.45%) — correctly predicting UP/DOWN movement more often. For trading purposes, direction matters more than absolute price error.
 
 ---
 
@@ -92,23 +98,47 @@ Layer 8 — Streamlit UI
 
 ### Predicted vs Actual Close Price
 ![Predictions vs Actual](reports/plots/AAPL_predictions_vs_actual.png)
-- **LinearRegression** follows the trend but is noisy
-- **ARIMA** outputs a flat line — failed to track the upward trend
-- **LSTM** captures the general upward direction but underestimates prices
 
 ### Model Metrics Comparison
 ![Metrics Comparison](reports/plots/AAPL_metrics_comparison.png)
 
 ### Residuals per Model
 ![Residuals](reports/plots/AAPL_residuals.png)
-- LinearRegression: balanced errors oscillating around zero — healthy
-- ARIMA: errors grow over time — drifts badly on trending markets
-- LSTM: consistently positive residuals — conservative, fixable bias
 
 ### LSTM Training History
 ![LSTM Training](reports/plots/AAPL_lstm_training_history.png)
-- Val loss bounces — early stopping triggered at epoch 14
-- LSTM needs more training to fully converge (addressed in Layer 6 tuning)
+
+---
+
+## Model Registry
+
+All trained models are versioned and stored in the registry:
+
+```
+registry/
+├── registry_index.json              ← tracks all versions + metrics
+└── AAPL/
+    ├── LinearRegression/
+    │   └── v1/LinearRegression.pkl  ← [BEST by RMSE]
+    ├── ARIMA/
+    │   └── v1/ARIMA.pkl
+    └── LSTM/
+        └── v1/LSTM.keras
+```
+
+### Registry Index Sample (`registry_index.json`)
+```json
+{
+  "AAPL__LinearRegression__v1": {
+    "model_name": "LinearRegression",
+    "version": "v1",
+    "ticker": "AAPL",
+    "registered_at": "2026-03-26T12:24:39",
+    "is_best": true,
+    "metrics": { "RMSE ($)": 13.6852, "MAE ($)": 10.8482, ... }
+  }
+}
+```
 
 ---
 
@@ -148,12 +178,18 @@ stock_prediction/
 │   │   ├── lstm_model.py
 │   │   └── training_pipeline.py    # Layer 4 entry point
 │   │
-│   └── evaluation/
-│       ├── metrics.py               # RMSE, MAE, MAPE, R2, Direction Acc
-│       ├── inverse_transformer.py   # Scaled → real dollar values
-│       ├── plotter.py               # 4 evaluation charts
-│       ├── report_generator.py      # CSV + TXT reports
-│       └── evaluation_pipeline.py  # Layer 5 entry point
+│   ├── evaluation/
+│   │   ├── metrics.py               # RMSE, MAE, MAPE, R2, Direction Acc
+│   │   ├── inverse_transformer.py   # Scaled → real dollar values
+│   │   ├── plotter.py               # 4 evaluation charts
+│   │   ├── report_generator.py      # CSV + TXT reports
+│   │   └── evaluation_pipeline.py  # Layer 5 entry point
+│   │
+│   └── registry/
+│       ├── model_entry.py           # Metadata dataclass per model
+│       ├── registry_store.py        # JSON-backed persistence layer
+│       ├── model_loader.py          # Loads models from saved files
+│       └── model_registry.py       # Layer 6 entry point
 │
 ├── data/
 │   ├── raw/                         # Raw CSVs from Yahoo Finance
@@ -166,9 +202,16 @@ stock_prediction/
 │       ├── ARIMA.pkl
 │       └── LSTM.keras
 │
+├── registry/
+│   ├── registry_index.json          # Versioned model index
+│   └── AAPL/
+│       ├── LinearRegression/v1/
+│       ├── ARIMA/v1/
+│       └── LSTM/v1/
+│
 ├── reports/
-│   ├── AAPL_evaluation_report.csv   # Machine-readable metrics
-│   ├── AAPL_evaluation_report.txt   # Human-readable summary
+│   ├── AAPL_evaluation_report.csv
+│   ├── AAPL_evaluation_report.txt
 │   └── plots/
 │       ├── AAPL_predictions_vs_actual.png
 │       ├── AAPL_metrics_comparison.png
@@ -183,6 +226,7 @@ stock_prediction/
 ├── run_features.py                  # Test Layer 3
 ├── run_training.py                  # Test Layer 4
 ├── run_evaluation.py                # Test Layer 5
+├── run_registry.py                  # Test Layer 6
 └── requirements.txt
 ```
 
@@ -208,6 +252,7 @@ python run_processing.py   # Layer 2 — clean, split, normalize, sequence
 python run_features.py     # Layer 3 — add technical indicators
 python run_training.py     # Layer 4 — train all 3 models
 python run_evaluation.py   # Layer 5 — evaluate and generate plots
+python run_registry.py     # Layer 6 — register and version models
 ```
 
 ---
@@ -229,10 +274,11 @@ matplotlib
 ## Key Design Principles
 
 - **Modular design** — each layer is independent and replaceable
-- **Separation of concerns** — fetch, validate, store, process, train, evaluate are all separate
+- **Separation of concerns** — every sub-module has a single responsibility
 - **No data leakage** — scaler fitted on training data only; time-aware split
 - **Common model interface** — all models implement `train()`, `predict()`, `evaluate()`, `save()`, `load()`
-- **Real value evaluation** — metrics computed on inverse-transformed dollar values, not scaled values
+- **Real value evaluation** — metrics computed on inverse-transformed dollar values
+- **Model versioning** — every training run is versioned and tracked in the registry
 - **Scalable** — swap any ticker, date range, or model with config changes only
 
 ---
@@ -253,6 +299,7 @@ LSTM_DROPOUT         = 0.2
 ARIMA_ORDER          = (5, 1, 0)
 MA_WINDOWS           = [7, 21, 50]
 RSI_PERIOD           = 14
+BEST_MODEL_METRIC    = "RMSE ($)"
 ```
 
 ---
