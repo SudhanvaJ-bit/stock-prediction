@@ -14,8 +14,8 @@ A modular, production-minded ML system that predicts stock price trends using hi
 | Layer 4 | Model Training | ✅ Complete |
 | Layer 5 | Model Evaluation | ✅ Complete |
 | Layer 6 | Model Registry | ✅ Complete |
-| Layer 7 | Prediction Service | 🔄 In Progress |
-| Layer 8 | Visualization / UI (Streamlit) | ⬜ Upcoming |
+| Layer 7 | Prediction Service | ✅ Complete |
+| Layer 8 | Visualization / UI (Streamlit) | 🔄 In Progress |
 
 ---
 
@@ -64,8 +64,14 @@ Layer 6 — Model Registry
   └── ModelRegistry          → register, load best, list, version
       │
       ▼
-Layer 7 — Prediction Service   ← next
-Layer 8 — Streamlit UI
+Layer 7 — Prediction Service
+  ├── DataPreparator         → fetch live data → clean → features → scale
+  ├── Predictor              → single-step and multi-step forecasting
+  ├── ResultSaver            → save predictions to CSV + JSON
+  └── PredictionService      → public entry point for any UI or API
+      │
+      ▼
+Layer 8 — Streamlit UI         ← next
 ```
 
 ---
@@ -91,6 +97,28 @@ Layer 8 — Streamlit UI
 | **LSTM** | $18.99 | $16.39 | 7.24% | 0.3732 | **54.45%** |
 
 > **Key Insight:** LinearRegression wins on raw error metrics (RMSE/MAE) but LSTM wins on Directional Accuracy (54.45%) — correctly predicting UP/DOWN movement more often. For trading purposes, direction matters more than absolute price error.
+
+---
+
+## Live Prediction Results (AAPL — 2026-03-28)
+
+### Next Day Prediction — All Models
+| Model | Last Known | Predicted (2026-03-30) | Change |
+|-------|-----------|------------------------|--------|
+| LinearRegression | $248.80 | $227.48 | ▼ $21.32 |
+| ARIMA | $248.80 | $193.57 | ▼ $55.23 |
+| LSTM | $248.80 | $208.36 | ▼ $40.44 |
+
+### 7-Day Forecast — Best Model (LinearRegression)
+| Date | Predicted Close | Change |
+|------|----------------|--------|
+| 2026-03-30 | $227.48 | ▼ $21.32 |
+| 2026-03-31 | $223.49 | ▼ $3.99 |
+| 2026-04-01 | $210.69 | ▼ $12.80 |
+| 2026-04-02 | $183.75 | ▼ $26.94 |
+| 2026-04-03 | $187.44 | ▲ $3.69 |
+| 2026-04-06 | $190.79 | ▲ $3.35 |
+| 2026-04-07 | $180.78 | ▼ $10.01 |
 
 ---
 
@@ -124,20 +152,6 @@ registry/
     │   └── v1/ARIMA.pkl
     └── LSTM/
         └── v1/LSTM.keras
-```
-
-### Registry Index Sample (`registry_index.json`)
-```json
-{
-  "AAPL__LinearRegression__v1": {
-    "model_name": "LinearRegression",
-    "version": "v1",
-    "ticker": "AAPL",
-    "registered_at": "2026-03-26T12:24:39",
-    "is_best": true,
-    "metrics": { "RMSE ($)": 13.6852, "MAE ($)": 10.8482, ... }
-  }
-}
 ```
 
 ---
@@ -185,16 +199,23 @@ stock_prediction/
 │   │   ├── report_generator.py      # CSV + TXT reports
 │   │   └── evaluation_pipeline.py  # Layer 5 entry point
 │   │
-│   └── registry/
-│       ├── model_entry.py           # Metadata dataclass per model
-│       ├── registry_store.py        # JSON-backed persistence layer
-│       ├── model_loader.py          # Loads models from saved files
-│       └── model_registry.py       # Layer 6 entry point
+│   ├── registry/
+│   │   ├── model_entry.py           # Metadata dataclass per model
+│   │   ├── registry_store.py        # JSON-backed persistence layer
+│   │   ├── model_loader.py          # Loads models from saved files
+│   │   └── model_registry.py       # Layer 6 entry point
+│   │
+│   └── prediction_service/
+│       ├── data_preparator.py       # Fetch live data → clean → features → scale
+│       ├── predictor.py             # Single-step and multi-step forecasting
+│       ├── result_saver.py          # Save predictions to CSV + JSON
+│       └── prediction_service.py   # Layer 7 entry point
 │
 ├── data/
 │   ├── raw/                         # Raw CSVs from Yahoo Finance
 │   ├── processed/                   # Scaled train/test CSVs + scaler
-│   └── features/                    # Feature-enriched CSVs
+│   ├── features/                    # Feature-enriched CSVs
+│   └── predictions/                 # Forecast outputs (CSV + JSON)
 │
 ├── models/
 │   └── AAPL/
@@ -203,7 +224,7 @@ stock_prediction/
 │       └── LSTM.keras
 │
 ├── registry/
-│   ├── registry_index.json          # Versioned model index
+│   ├── registry_index.json
 │   └── AAPL/
 │       ├── LinearRegression/v1/
 │       ├── ARIMA/v1/
@@ -227,6 +248,7 @@ stock_prediction/
 ├── run_training.py                  # Test Layer 4
 ├── run_evaluation.py                # Test Layer 5
 ├── run_registry.py                  # Test Layer 6
+├── run_prediction.py                # Test Layer 7
 └── requirements.txt
 ```
 
@@ -253,6 +275,31 @@ python run_features.py     # Layer 3 — add technical indicators
 python run_training.py     # Layer 4 — train all 3 models
 python run_evaluation.py   # Layer 5 — evaluate and generate plots
 python run_registry.py     # Layer 6 — register and version models
+python run_prediction.py   # Layer 7 — predict future stock prices
+```
+
+---
+
+## Quick Prediction Usage
+
+```python
+from src.prediction_service import PredictionService
+
+service = PredictionService()
+
+# Predict next trading day
+result = service.predict(ticker="AAPL", horizon=1)
+
+# Predict next 7 trading days
+result = service.predict(ticker="AAPL", horizon=7)
+
+# Use a specific model
+result = service.predict(ticker="AAPL", model_name="LSTM", horizon=5)
+
+# Compare all models
+results = service.predict_all_models(ticker="AAPL", horizon=1)
+
+print(result.summary())
 ```
 
 ---
@@ -279,6 +326,7 @@ matplotlib
 - **Common model interface** — all models implement `train()`, `predict()`, `evaluate()`, `save()`, `load()`
 - **Real value evaluation** — metrics computed on inverse-transformed dollar values
 - **Model versioning** — every training run is versioned and tracked in the registry
+- **Live inference** — prediction service fetches real-time data from Yahoo Finance
 - **Scalable** — swap any ticker, date range, or model with config changes only
 
 ---
@@ -300,6 +348,7 @@ ARIMA_ORDER          = (5, 1, 0)
 MA_WINDOWS           = [7, 21, 50]
 RSI_PERIOD           = 14
 BEST_MODEL_METRIC    = "RMSE ($)"
+PREDICTION_HORIZON   = 7
 ```
 
 ---

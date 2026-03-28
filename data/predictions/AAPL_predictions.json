@@ -1,0 +1,38 @@
+{
+  "ticker": "AAPL",
+  "model_name": "LinearRegression",
+  "model_version": "v1",
+  "last_known_date": "2026-03-27",
+  "last_known_price": 248.8,
+  "predictions": [
+    {
+      "date": "2026-03-30",
+      "predicted_close": 227.4788
+    },
+    {
+      "date": "2026-03-31",
+      "predicted_close": 223.4922
+    },
+    {
+      "date": "2026-04-01",
+      "predicted_close": 210.6882
+    },
+    {
+      "date": "2026-04-02",
+      "predicted_close": 183.753
+    },
+    {
+      "date": "2026-04-03",
+      "predicted_close": 187.4391
+    },
+    {
+      "date": "2026-04-06",
+      "predicted_close": 190.7895
+    },
+    {
+      "date": "2026-04-07",
+      "predicted_close": 180.7762
+    }
+  ],
+  "generated_at": "2026-03-28 18:44:18"
+}

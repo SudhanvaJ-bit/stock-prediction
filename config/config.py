@@ -117,3 +117,13 @@ REGISTRY_INDEX_FILE = os.path.join(BASE_DIR, "registry", "registry_index.json")
 
 # Metric used to select the best model
 BEST_MODEL_METRIC = "RMSE ($)"     # lower is better
+
+# ──────────────────────────────────────────────
+# PREDICTION SERVICE SETTINGS
+# ──────────────────────────────────────────────
+
+# Number of future days to forecast
+PREDICTION_HORIZON = 7
+
+# Prediction results output directory
+PREDICTIONS_DIR = os.path.join(BASE_DIR, "data", "predictions")
