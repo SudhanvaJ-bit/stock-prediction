@@ -1,13 +1,30 @@
+"""
+src/registry/model_registry.py
+--------------------------------
+Public entry point for the Model Registry Layer.
+
+The ModelRegistry ties together RegistryStore and ModelLoader to provide
+a clean, high-level API for the rest of the system.
+
+Responsibilities:
+  - Register all models from a TrainingResult + EvaluationResult
+  - Auto-version new model registrations (v1, v2, v3 ...)
+  - Track which model is best per ticker
+  - Load the best model on demand for the prediction service
+  - List, inspect, and compare all registered models
+"""
+
 import os
 import shutil
 from datetime import datetime
 from typing import Optional, List
-from src.registry.model_entry import ModelEntry
+
+from src.registry.model_entry    import ModelEntry
 from src.registry.registry_store import RegistryStore
-from src.registry.model_loader import ModelLoader, ModelLoadError
-from src.models.training_pipeline import TrainingResult
+from src.registry.model_loader   import ModelLoader, ModelLoadError
+from src.models.training_pipeline  import TrainingResult
 from src.evaluation.evaluation_pipeline import EvaluationResult
-from src.models.base_model import BaseModel
+from src.models.base_model         import BaseModel
 
 from config.config import (
     REGISTRY_DIR,
@@ -19,7 +36,24 @@ from config.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 class ModelRegistry:
+    """
+    High-level interface for registering, retrieving, and managing ML models.
+
+    Usage:
+        registry = ModelRegistry()
+
+        # Register all models after training + evaluation
+        registry.register_all(training_result, eval_result)
+
+        # Load best model for prediction
+        model, entry = registry.load_best(ticker="AAPL")
+
+        # List all registered models
+        registry.list_models(ticker="AAPL")
+    """
+
     def __init__(self):
         self._store  = RegistryStore()
         self._loader = ModelLoader()
@@ -33,7 +67,23 @@ class ModelRegistry:
         training_result: TrainingResult,
         eval_result:     EvaluationResult,
     ) -> List[ModelEntry]:
+        """
+        Registers all models from a completed training + evaluation run.
 
+        For each model:
+          1. Determines the next version number
+          2. Copies model file to versioned registry folder
+          3. Creates a ModelEntry with full metadata
+          4. Saves to registry index
+          5. Marks the best model
+
+        Args:
+            training_result (TrainingResult)  : Output from TrainingPipeline.
+            eval_result     (EvaluationResult): Output from EvaluationPipeline.
+
+        Returns:
+            List[ModelEntry]: All newly registered entries.
+        """
         ticker  = training_result.ticker
         entries = []
 
@@ -98,20 +148,47 @@ class ModelRegistry:
         ticker:     str,
         model_name: Optional[str] = None,
     ):
+        """
+        Loads the best registered model for a given ticker.
 
-        entry = self._store.get_best(ticker=ticker.upper(), model_name=model_name)
+        Args:
+            ticker     : Stock ticker (e.g. 'AAPL').
+            model_name : If provided, loads best of that specific model type.
+
+        Returns:
+            Tuple[BaseModel, ModelEntry]: Loaded model and its registry entry.
+
+        Raises:
+            ModelLoadError: If no best model is found.
+        """
+        # If a specific model is requested, load its latest version directly
+        # (no need for is_best flag — user explicitly chose this model)
+        if model_name:
+            all_entries = self._store.get_all(ticker=ticker.upper(), model_name=model_name)
+            entry = all_entries[0] if all_entries else None
+        else:
+            entry = self._store.get_best(ticker=ticker.upper(), model_name=None)
 
         if not entry:
             raise ModelLoadError(
-                f"No best model found in registry for ticker='{ticker}'"
+                f"No model found in registry for ticker='{ticker}'"
                 + (f", model='{model_name}'" if model_name else "")
             )
 
-        logger.info(f"[Registry] Loading best model: {entry.entry_id}")
+        logger.info(f"[Registry] Loading model: {entry.entry_id}")
         model = self._loader.load(entry)
         return model, entry
 
     def load_by_id(self, entry_id: str):
+        """
+        Loads a specific model by its entry ID.
+
+        Args:
+            entry_id (str): Registry entry ID (e.g. 'AAPL__LSTM__v2')
+
+        Returns:
+            Tuple[BaseModel, ModelEntry]
+        """
         entry = self._store.get(entry_id)
         if not entry:
             raise ModelLoadError(f"No registry entry found for ID: '{entry_id}'")
@@ -154,7 +231,10 @@ class ModelRegistry:
         model_name: str,
         peek:       bool = False,
     ) -> str:
-
+        """
+        Returns the next version string for a ticker + model combination.
+        peek=True returns the CURRENT latest version without incrementing.
+        """
         existing = self._store.get_all(ticker=ticker, model_name=model_name)
         n = len(existing)
         return f"v{n}" if peek else f"v{n + 1}"
@@ -172,7 +252,11 @@ class ModelRegistry:
         model_name: str,
         version:    str,
     ) -> str:
+        """
+        Copies a model file to a versioned location inside the registry folder.
 
+        Destination: registry/{TICKER}/{ModelName}/{version}/{filename}
+        """
         if not os.path.exists(src_path):
             logger.warning(f"[Registry] Source file not found: {src_path}. Storing path as-is.")
             return src_path

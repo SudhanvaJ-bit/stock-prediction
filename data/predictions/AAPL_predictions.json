@@ -7,32 +7,32 @@
   "predictions": [
     {
       "date": "2026-03-30",
-      "predicted_close": 227.4788
+      "predicted_close": 227.0152
     },
     {
       "date": "2026-03-31",
-      "predicted_close": 223.4922
+      "predicted_close": 222.854
     },
     {
       "date": "2026-04-01",
-      "predicted_close": 210.6882
+      "predicted_close": 209.96
     },
     {
       "date": "2026-04-02",
-      "predicted_close": 183.753
+      "predicted_close": 183.0075
     },
     {
       "date": "2026-04-03",
-      "predicted_close": 187.4391
+      "predicted_close": 186.8382
     },
     {
       "date": "2026-04-06",
-      "predicted_close": 190.7895
+      "predicted_close": 190.0733
     },
     {
       "date": "2026-04-07",
-      "predicted_close": 180.7762
+      "predicted_close": 179.9379
     }
   ],
-  "generated_at": "2026-03-28 18:44:18"
+  "generated_at": "2026-03-30 14:33:16"
 }
